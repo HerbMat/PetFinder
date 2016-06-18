@@ -1,13 +1,17 @@
 package com.petfinder.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.petfinder.exception.AdminAllowedException;
 import com.petfinder.exception.EmailExistsException;
 import com.petfinder.exception.EmailsDoesNotMatchException;
 import com.petfinder.exception.InvalidEmailException;
@@ -15,6 +19,7 @@ import com.petfinder.exception.InvalidUserPasswordException;
 import com.petfinder.exception.LoginExistsException;
 import com.petfinder.exception.PasswordsDoesNotMatchException;
 import com.petfinder.service.UserService;
+import com.petfinder.domain.User;
 
 @Controller
 public class UserController {
@@ -91,6 +96,32 @@ public class UserController {
 			model.addAttribute("isChecked", "");
 		}
 		return "settings";
+	}
+	
+	@RequestMapping(value = "/admin/user/index", method = RequestMethod.GET)
+	public String userList(Model model) {
+    	if(!this.userservice.checkIfUserIsAdmin()) {
+    		throw new AdminAllowedException("You must be admin");
+    	}
+		
+		List<User> userList = userservice.getAllUsers();
+		model.addAttribute("users", userList);
+		
+		return "indexUser";
+	}
+	
+	@RequestMapping(value = "/admin/user/block/{id}", method = RequestMethod.PUT)
+	public String userList(@PathVariable int id, Model model) {
+    	if(!this.userservice.checkIfUserIsAdmin()) {
+    		throw new AdminAllowedException("You must be admin");
+    	}
+		
+		this.userservice.blockUser(id);
+		List<User> userList = userservice.getAllUsers();
+		model.addAttribute("status", "User with id " + id +" was succesfully blocked.");
+		model.addAttribute("users", userList);
+		
+		return "indexUser";
 	}
 
 	@RequestMapping(value = "/profile", method = RequestMethod.GET)
