@@ -39,7 +39,6 @@ public class AdvertisementController {
 
     private final static Logger LOGGER = Logger.getLogger(AdvertisementController.class.getName());
     private final static int INITIAL_PAGE = 0;
-    private final static String adminPath = "/admin";
 
     @Autowired
     AdvertisementService advertisementService;

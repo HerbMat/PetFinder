@@ -21,6 +21,7 @@
 
 							<ul class="right">
 								{% if(beans.userService.checkIfUserIsLogged == true) %}
+									<li><a href="{{'/admin/user/index' | path }}">Admin Panel</a></li>
 									<li><a href="{{'/profile' | path }}">Profile</a></li>
 									<li><a href="{{'/settings' | path }}">Settings</a></li>
 									<li><a href="{{'/logout' | path }}">

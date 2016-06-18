@@ -25,6 +25,9 @@ public class User extends AbstractPersistable<Long> implements Serializable {
 	@Column(name = "isActivated", nullable = false)
     private boolean isActivated;
 	
+	@Column(name = "isAdmin", nullable = false)
+    private boolean isAdmin = false;
+
 	@Column(name = "isBanned", nullable = false)
     private boolean isBanned;
 	
@@ -60,7 +63,16 @@ public class User extends AbstractPersistable<Long> implements Serializable {
     	this.registrationDate = new Date();
         this.advertisements = new ArrayList<>();
         this.pets = new ArrayList<>();
+        this.isAdmin = false;
     }
+    
+	public boolean isAdmin() {
+		return isAdmin;
+	}
+
+	public void setAdmin(boolean isAdmin) {
+		this.isAdmin = isAdmin;
+	}
 
 	public String getLogin() {
 		return login;

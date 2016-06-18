@@ -1,8 +1,11 @@
 package com.petfinder.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,6 +18,7 @@ import com.petfinder.exception.InvalidUserPasswordException;
 import com.petfinder.exception.LoginExistsException;
 import com.petfinder.exception.PasswordsDoesNotMatchException;
 import com.petfinder.service.UserService;
+import com.petfinder.domain.User;
 
 @Controller
 public class UserController {
@@ -91,6 +95,24 @@ public class UserController {
 			model.addAttribute("isChecked", "");
 		}
 		return "settings";
+	}
+	
+	@RequestMapping(value = "/admin/user/index", method = RequestMethod.GET)
+	public String userList(Model model) {
+		List<User> userList = userservice.getAllUsers();
+		model.addAttribute("users", userList);
+		
+		return "indexUser";
+	}
+	
+	@RequestMapping(value = "/admin/user/block/{id}", method = RequestMethod.PUT)
+	public String userList(@PathVariable int id, Model model) {
+		this.userservice.blockUser(id);
+		List<User> userList = userservice.getAllUsers();
+		model.addAttribute("status", "User with id " + id +" was succesfully blocked.");
+		model.addAttribute("users", userList);
+		
+		return "indexUser";
 	}
 
 	@RequestMapping(value = "/profile", method = RequestMethod.GET)

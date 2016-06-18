@@ -34,8 +34,6 @@ import com.petfinder.exception.UserDoesNotHavePermissionToAdvertisemntException;
 import com.petfinder.rest.domain.EmailSender;
 import com.petfinder.rest.domain.SearchResults;
 
-import scala.remote;
-
 @Service
 public class AdvertisementService {
 
@@ -55,8 +53,6 @@ public class AdvertisementService {
     UserRepository userRepository;
     @Autowired
     UserService userService;
-    @PersistenceContext
-    private EntityManager entityManager;
 
 
     private final static Logger LOGGER = Logger.getLogger(AdvertisementService.class.getName());
