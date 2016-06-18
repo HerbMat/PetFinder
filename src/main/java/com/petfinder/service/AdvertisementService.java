@@ -6,8 +6,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 
+import org.hibernate.cfg.EJB3DTDEntityResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,8 @@ import com.petfinder.exception.UserDoesNotHavePermissionToAdvertisemntException;
 import com.petfinder.rest.domain.EmailSender;
 import com.petfinder.rest.domain.SearchResults;
 
+import scala.remote;
+
 @Service
 public class AdvertisementService {
 
@@ -50,6 +55,9 @@ public class AdvertisementService {
     UserRepository userRepository;
     @Autowired
     UserService userService;
+    @PersistenceContext
+    private EntityManager entityManager;
+
 
     private final static Logger LOGGER = Logger.getLogger(AdvertisementService.class.getName());
 
@@ -253,6 +261,12 @@ public class AdvertisementService {
 		EmailSender es = new EmailSender(usersToNotify,advertisement);
 		Thread t = new Thread(es);
 		t.start();
+	}
+	
+	public void deleteAdvertisement(int advId)
+	{
+		Advertisement advertisement = this.getAdvertisement(advId);
+		this.advertisementRepository.delete(advertisement);
 	}
 
     @PostConstruct
