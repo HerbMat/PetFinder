@@ -143,6 +143,17 @@ public class UserService {
 		}
 		return true;
 	}
+	
+	public boolean checkIfUserIsAdmin()
+	{	
+		if(this.checkIfUserIsLogged()) {
+			String username = SecurityContextHolder.getContext().getAuthentication().getName();
+			User user = this.userRepository.findOneByLogin(username);
+			
+			return user.isAdmin();
+		}
+		return false;
+	}
 
     public String getLoggedUserName() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();

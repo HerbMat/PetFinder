@@ -94,13 +94,15 @@
                 <a href="mailto:{{ ad.getUser.getEmail }}" class="col s3 waves-effect waves-light btn red">
                     <i class="material-icons left">comment</i>Contact
 				</a>
-				<form action="{{ concat('/admin/deleteAdv/', ad.id) | path }}"  method="post" />
-			        <input type="hidden" name="_method" value="DELETE">
-			        <input type="hidden" name="{{ csrf.parameterName }}" value="{{ csrf.token }}" />
-		            <button class="col s3 waves-effect waves-light btn red" type="submit">
-		                {% block buttonFormLabel %} Delete {% endblock %}
-		            </button>
-			    </form>
+				{% if(beans.userService.checkIfUserIsAdmin == true) %}
+					<form action="{{ concat('/admin/deleteAdv/', ad.id) | path }}"  method="post" />
+				        <input type="hidden" name="_method" value="DELETE">
+				        <input type="hidden" name="{{ csrf.parameterName }}" value="{{ csrf.token }}" />
+			            <button class="col s3 waves-effect waves-light btn red" type="submit">
+			                {% block buttonFormLabel %} Delete {% endblock %}
+			            </button>
+				    </form>
+			    {% endif %}
             </div>
             {% endif %}
         </div>

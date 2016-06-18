@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.petfinder.exception.AdminAllowedException;
 import com.petfinder.exception.EmailExistsException;
 import com.petfinder.exception.EmailsDoesNotMatchException;
 import com.petfinder.exception.InvalidEmailException;
@@ -99,6 +100,10 @@ public class UserController {
 	
 	@RequestMapping(value = "/admin/user/index", method = RequestMethod.GET)
 	public String userList(Model model) {
+    	if(!this.userservice.checkIfUserIsAdmin()) {
+    		throw new AdminAllowedException("You must be admin");
+    	}
+		
 		List<User> userList = userservice.getAllUsers();
 		model.addAttribute("users", userList);
 		
@@ -107,6 +112,10 @@ public class UserController {
 	
 	@RequestMapping(value = "/admin/user/block/{id}", method = RequestMethod.PUT)
 	public String userList(@PathVariable int id, Model model) {
+    	if(!this.userservice.checkIfUserIsAdmin()) {
+    		throw new AdminAllowedException("You must be admin");
+    	}
+		
 		this.userservice.blockUser(id);
 		List<User> userList = userservice.getAllUsers();
 		model.addAttribute("status", "User with id " + id +" was succesfully blocked.");

@@ -5,21 +5,27 @@ import com.petfinder.domain.Advertisement;
 import com.petfinder.domain.Attachment;
 import com.petfinder.domain.Tag;
 import com.petfinder.service.AdvertisementService;
+import com.petfinder.service.UserService;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
+
 import com.petfinder.domain.Location;
 import com.petfinder.domain.Pet;
 import com.petfinder.domain.PetCategory;
+import com.petfinder.exception.AdminAllowedException;
 import com.petfinder.exception.NoUsersToNotifyException;
 import com.petfinder.exception.UserDoesNotHavePermissionToAdvertisemntException;
 import com.petfinder.rest.domain.SearchResults;
@@ -42,6 +48,9 @@ public class AdvertisementController {
 
     @Autowired
     AdvertisementService advertisementService;
+    
+    @Autowired
+    UserService userService;
 
     @RequestMapping(value = {"/", "/latest"})
     public String latestAdvertisements(Model model) {
@@ -301,6 +310,9 @@ public class AdvertisementController {
 			@PathVariable int advId
 			
 	) {
+    	if(!this.userService.checkIfUserIsAdmin()) {
+    		throw new AdminAllowedException("You must be admin");
+    	}
     	advertisementService.deleteAdvertisement(advId);
     	
     	return "deleteSuccess";
