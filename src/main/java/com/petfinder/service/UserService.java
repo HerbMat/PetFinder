@@ -1,5 +1,7 @@
 package com.petfinder.service;
 
+import java.util.List;
+
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -25,6 +27,17 @@ public class UserService {
 	private UserRepository userRepository;
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	
+	@Transactional
+	public User getLoggedUser(){
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+		return userRepository.findOneByLogin(login);
+	}
+	
+	public List<User> getAllUsers()
+	{
+		return (List<User>) this.userRepository.findAll();
+	}
 
     @Transactional
     public void register(String login, String password, String repeatPassword,
@@ -71,6 +84,25 @@ public class UserService {
 		}
 	}
 	
+	@Transactional
+	public void changeEmailNotificationValue(boolean emailNotification){
+		if(checkIfUserIsLogged()){
+	        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+			User user = userRepository.findOneByLogin(login);
+			
+			user.setEmailNotification(emailNotification);
+			userRepository.save(user);
+		}
+	}
+	
+	@Transactional
+    public void blockUser(int id)
+    {
+    	User user = this.userRepository.findOne((long) id);
+    	user.setBanned(true);
+    	this.userRepository.save(user);
+    }
+	
 	private void updateEmail(User user, String newEmail, String repeatEmail) throws EmailExistsException, EmailsDoesNotMatchException{
 		if(newEmail.equals(repeatEmail)){
 			if(verifyEmail(newEmail)){
@@ -110,6 +142,17 @@ public class UserService {
 			return false;
 		}
 		return true;
+	}
+	
+	public boolean checkIfUserIsAdmin()
+	{	
+		if(this.checkIfUserIsLogged()) {
+			String username = SecurityContextHolder.getContext().getAuthentication().getName();
+			User user = this.userRepository.findOneByLogin(username);
+			
+			return user.isAdmin();
+		}
+		return false;
 	}
 
     public String getLoggedUserName() {
