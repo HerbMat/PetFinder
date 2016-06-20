@@ -33,6 +33,9 @@ public class MyUserDetailsService implements UserDetailsService {
 		throws UsernameNotFoundException {
 		LOGGER.log(Level.SEVERE,username);
 		com.petfinder.domain.User  user = userDao.findOneByLogin(username);
+		if(user.isBanned()) {
+			return null;
+		}
 		List<GrantedAuthority> authorities = buildUserAuthority();
 		LOGGER.log(Level.SEVERE,user.getLogin());
 		return buildUserForAuthentication(user, authorities);
