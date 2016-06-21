@@ -1,5 +1,6 @@
 package com.petfinder.service;
 
+import com.petfinder.dao.AdvertisementRepository;
 import java.io.File;
 import java.util.List;
 import java.util.logging.Level;
@@ -15,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import com.petfinder.dao.AdvertisementRepository;
 import com.petfinder.dao.AttachmentRepository;
 import com.petfinder.dao.LocationRepository;
 import com.petfinder.dao.PetCategoryRepository;
@@ -33,6 +33,7 @@ import com.petfinder.exception.NoUsersToNotifyException;
 import com.petfinder.exception.UserDoesNotHavePermissionToAdvertisemntException;
 import com.petfinder.rest.domain.EmailSender;
 import com.petfinder.rest.domain.SearchResults;
+import com.petfinder.dao.ReportRepository;
 
 @Service
 public class AdvertisementService {
@@ -53,7 +54,6 @@ public class AdvertisementService {
     UserRepository userRepository;
     @Autowired
     UserService userService;
-
 
     private final static Logger LOGGER = Logger.getLogger(AdvertisementService.class.getName());
 
@@ -91,7 +91,7 @@ public class AdvertisementService {
         long pages = advertisementRepository.count();
         return (long) Math.ceil(pages / perPage);
     }
-    
+
     @Transactional
     public Advertisement newAdvertisement(String title, String content, String petName, Integer age, String race, String categoryName, String voivodership, String commune, String place, List<Tag> tags, List<Attachment> attachments) {
         User user = userRepository.findOneByLogin(userService.getLoggedUserName());
@@ -102,7 +102,7 @@ public class AdvertisementService {
         Advertisement advertisement = new Advertisement(title, content, user, pet, location, tags, attachments);
         advertisement = setAtachment(attachments, title, content, user, pet, location, tags, advertisement);
         advertisementRepository.save(advertisement);
-        
+
         return advertisement;
     }
 
@@ -173,8 +173,8 @@ public class AdvertisementService {
                         locations,
                         tags
                 ).size();
-        
-        return new SearchResults(advertisements, (int)allResultsCounts);
+
+        return new SearchResults(advertisements, (int) allResultsCounts);
     }
 
     public Advertisement getToEditAdvertisement(Long id) throws UserDoesNotHavePermissionToAdvertisemntException {
@@ -239,31 +239,29 @@ public class AdvertisementService {
         }
         return pet;
     }
-    
-	@Transactional
-	public List<User> getUsersToNotify() throws NoUsersToNotifyException {
 
-		if(userRepository.getUsersToNotify()!=null){
-			return userRepository.getUsersToNotify();
-		}
-		
-		throw new NoUsersToNotifyException("Users to notify were not found.");
-	}
-	
-	
-	public void sendEmailNotification(Advertisement advertisement) throws NoUsersToNotifyException{
-		List<User> usersToNotify = getUsersToNotify();
-		
-		EmailSender es = new EmailSender(usersToNotify,advertisement);
-		Thread t = new Thread(es);
-		t.start();
-	}
-	
-	public void deleteAdvertisement(int advId)
-	{
-		Advertisement advertisement = this.getAdvertisement(advId);
-		this.advertisementRepository.delete(advertisement);
-	}
+    @Transactional
+    public List<User> getUsersToNotify() throws NoUsersToNotifyException {
+
+        if (userRepository.getUsersToNotify() != null) {
+            return userRepository.getUsersToNotify();
+        }
+
+        throw new NoUsersToNotifyException("Users to notify were not found.");
+    }
+
+    public void sendEmailNotification(Advertisement advertisement) throws NoUsersToNotifyException {
+        List<User> usersToNotify = getUsersToNotify();
+
+        EmailSender es = new EmailSender(usersToNotify, advertisement);
+        Thread t = new Thread(es);
+        t.start();
+    }
+
+    public void teAdvertisement(int advId) {
+        Advertisement advertisement = this.getAdvertisement(advId);
+        this.advertisementRepository.delete(advertisement);
+    }
 
     @PostConstruct
     private void setDatabase() {
@@ -314,6 +312,17 @@ public class AdvertisementService {
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, e.toString());
+        }
+    }
+
+    public void deleteAdvertisement(Long id) throws UserDoesNotHavePermissionToAdvertisemntException {
+        Advertisement advertisement = advertisementRepository.findOne(id);
+        if (advertisement != null) {
+            if (advertisement.getUser() == null || advertisement.getUser().equals(userService.getLoggedUserName())) {
+                throw new UserDoesNotHavePermissionToAdvertisemntException("User does not have permission to advertisemnt");
+            }
+            advertisement.setDeleted(true);
+            advertisementRepository.save(advertisement);
         }
     }
 }

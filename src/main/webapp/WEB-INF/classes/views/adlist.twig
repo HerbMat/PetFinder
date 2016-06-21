@@ -1,6 +1,17 @@
 {% extends 'template.twig' %}
 {% block title %}Latest advertisements{% endblock %}
 {% block content %}
+        {% if statusOK %}
+                <div class="row">
+                        <div class="col s6 offset-s3" role="alert">
+                                <div class="card green darken-1">
+                                        <div class="card-content white-text">
+                                                <p>{{ statusOK }}</p>
+                                        </div>
+                                </div>
+                        </div>
+                </div>
+    {% endif %}
 	<h3 class="grey-text text-darken-1">Advertisements</h3>
 	<div class="row">
 	    <form action="{{ '/searchResult' | path }}" method="post" id="searchForm"
@@ -47,11 +58,21 @@
 					<a href="{{ '/advertisement' | path }}/{{ ad.getId }}">
 						{{ ad.getTitle }}
 					</a>
-					{% if (beans.userService.getLoggedUserName == ad.getUser.getLogin and beans.userService.getLoggedUserName != null) %}
+					{% if ( beans.userService.getLoggedUserName != null) %}
+                                            {% if (beans.userService.getLoggedUserName == ad.getUser.getLogin ) %}
 						<a href="/getEditAdd?id={{ad.id}}"
 						   class="btn-floating waves-effect waves-light red" >
 							<i class="material-icons">edit</i>
 						</a>
+                                                <a href="/deleteAdd?id={{ad.id}}"
+                                                   class="btn-floating waves-effect waves-light red" >
+                                                    <i class="material-icons">delete</i>
+                                                </a>
+                                            {% endif %}
+                                            <a href="/addReport?idAdd={{ad.id}}"
+                                               class="btn-floating waves-effect waves-light red" >
+                                                    <i class="material-icons">error</i>
+                                            </a>
 					{% endif %}
 				</h5>
 				<p>
