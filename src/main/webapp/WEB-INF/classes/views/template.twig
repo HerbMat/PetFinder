@@ -3,31 +3,47 @@
 	<head>
 	    <title>{% block title %}{% endblock %} - PetFinder</title>
 	    <meta charset="text/html; charset=UTF-8">
-	    <link rel="stylesheet" href="materialize/dist/css/materialize.min.css">
-	    <link rel="stylesheet" href="css/custom.css">
+	    <link rel="stylesheet" href="/materialize/dist/css/materialize.min.css">
+	    <link rel="stylesheet" href="/css/custom.css">
 	</head>
-	<body>
+	<body {% block onloadBlock %} {% endblock %}>
 		<nav class="navbar navbar-inverse">
 		   <div class="navbar-fixed">
 	            <nav class="blue darken-3">
 	                <div class="container">
 	                    <div class="nav-wrapper">
-	                        <ul>
+	                        <ul class="left">
 						      <li><a href="/">Home</a></li>
-						      <li><a href="/getNewAdd">Add Poster</a></li>
-						      {% if(beans.userService.checkIfUserIsLogged == true) %}
-						          <li><a href="{{'/logout' | path }}">Logout</a></li>
-						      {% else %}
-						   		  <li><a href="{{'/login' | path }}">Login</a></li>
-						      	  <li><a href="{{'/register' | path }}">Register</a></li>
-						      {% endif %}
+							{% if(beans.userService.checkIfUserIsLogged == true) %}
+						      <li><a href="/getNewAdd">Add</a></li>
+							{% endif %}
 		    				</ul>
+
+							<ul class="right">
+								{% if(beans.userService.checkIfUserIsLogged == true) %}
+									{% if(beans.userService.checkIfUserIsAdmin == true) %}
+										<li><a href="{{'/admin/user/index' | path }}">Admin Panel</a></li>
+									{% endif %}
+									<li><a href="{{'/profile' | path }}">Profile</a></li>
+									<li><a href="{{'/settings' | path }}">Settings</a></li>
+									<li><a href="{{'/logout' | path }}">
+										Logout
+									</a></li>
+								{% else %}
+									<li><a href="{{'/register' | path }}">
+										Register
+									</a></li>
+									<li><a href="{{'/login' | path }}">
+										Login
+									</a></li>
+								{% endif %}
+							</ul>
 	                    </div>
 	                </div>
 	            </nav>
 	        </div>
 		</nav>
-	    <div class="container center">
+	    <div class="container">
 			{% block content %}{% endblock %}
 	    </div>
 	    <main>
@@ -40,9 +56,9 @@
 	        </div>
 	    </footer>
 	    {% block javascripts %}
-			<script type="text/javascript" src="jquery/dist/jquery.min.js"></script>
-	        <script type="text/javascript" src="materialize/dist/js/materialize.min.js"></script>
-	        <script type="text/javascript" src="js/custom.js"></script>
+			<script type="text/javascript" src="/jquery/dist/jquery.min.js"></script>
+	        <script type="text/javascript" src="/materialize/dist/js/materialize.min.js"></script>
+	        <script type="text/javascript" src="/js/custom.js"></script>
 	        {% block additonalJavaScripts %}{% endblock %}
 	    {% endblock %}
 	</body>

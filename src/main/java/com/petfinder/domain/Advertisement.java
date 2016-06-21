@@ -15,7 +15,7 @@ public class Advertisement extends AbstractPersistable<Long>
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, length = 1048576)
     private String content;
 
     @Column(name = "isDeleted", nullable = false)

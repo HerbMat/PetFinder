@@ -1,0 +1,64 @@
+{% extends 'template.twig' %}
+{% block title %}User profile{% endblock %}
+{% block content %}
+
+    <h3 class="grey-text text-darken-1">Profile</h3>
+
+    {% if status %}
+        <div class="row">
+            <div class="col s6 offset-s3" role="alert">
+                <div class="card red darken-1">
+                    <div class="card-content white-text">
+                        <p>{{ status }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <form action="/profile" method="POST"
+          enctype="multipart/form-data">
+    <div class="row">
+        <div class="col s6">
+            <div class="input-field">
+                <input type="email" id="newEmail" name="newEmail"
+                       class="validate" placeholder="New Email address">
+                <label for="newEmail">New Email address</label>
+            </div>
+
+            <div class="input-field">
+                <input type="email" id="repeatEmail" name="repeatEmail"
+                       class="validate" placeholder="Re-enter Email address">
+                <label for="repeatEmail">Re-enter Email address</label>
+            </div>
+        </div>
+
+        <div class="col s6">
+            <div class="input-field">
+                <input type="password" id="newPassword" name="newPassword"
+                       class="validate" placeholder="New password">
+                <label for="newPassword">New password</label>
+            </div>
+
+            <div class="input-field">
+                <input type="password" id="repeatPassword" name="repeatPassword"
+                       class="validate" placeholder="Re-enter password">
+                <label for="repeatPassword">Re-enter password</label>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" name="{{ csrf.parameterName }}" value="{{ csrf.token }}" />
+
+    <div class="row input-field">
+        <input type="password" id="currentPassword" name="currentPassword"
+               class="validate" placeholder="Current password">
+        <label for="currentPassword">Current password</label>
+    </div>
+        <div class="form-actions clearfix">
+        <button type="submit" class="btn waves-effect waves-light">
+            Update
+        </button>
+    </div>
+    </form>
+
+{% endblock %}

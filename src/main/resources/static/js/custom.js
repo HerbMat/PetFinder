@@ -9,8 +9,8 @@ $(document).ready(function(){
         e.preventDefault();
 
         $.ajax({
-            type: "POST",
-            url: location.href + "searchResult",
+            type: "GET",
+            url: $(this).attr('action'),
             data: $(this).serialize(),
             success: function (data) {
                 $('#Ads').html(data);

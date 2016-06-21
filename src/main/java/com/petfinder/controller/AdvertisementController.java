@@ -1,32 +1,42 @@
 package com.petfinder.controller;
 
+import com.petfinder.dao.AdvertisementRepository;
 import com.petfinder.domain.Advertisement;
+import com.petfinder.domain.Attachment;
+import com.petfinder.domain.Tag;
+import com.petfinder.service.AdvertisementService;
+import com.petfinder.service.UserService;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
-import com.petfinder.domain.Attachment;
 import com.petfinder.domain.Location;
 import com.petfinder.domain.Pet;
 import com.petfinder.domain.PetCategory;
-import com.petfinder.domain.Tag;
+import com.petfinder.exception.AdminAllowedException;
+import com.petfinder.exception.NoUsersToNotifyException;
 import com.petfinder.exception.UserDoesNotHavePermissionToAdvertisemntException;
-import com.petfinder.service.AdvertisementService;
+import com.petfinder.rest.domain.SearchResults;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.aspectj.weaver.patterns.ThisOrTargetAnnotationPointcut;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,11 +44,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class AdvertisementController {
 
     private final static Logger LOGGER = Logger.getLogger(AdvertisementController.class.getName());
-
     private final static int INITIAL_PAGE = 0;
 
     @Autowired
     AdvertisementService advertisementService;
+    
+    @Autowired
+    UserService userService;
 
     @RequestMapping(value = {"/", "/latest"})
     public String latestAdvertisements(Model model) {
@@ -58,6 +70,17 @@ public class AdvertisementController {
         return "adlist";
     }
 
+    @RequestMapping(value = "/advertisement/{id}")
+    public String advertisement(@PathVariable long id, Model model) {
+        Advertisement ad = advertisementService.getAdvertisement(id);
+        model.addAttribute("notfound", 0);
+        if (ad == null) {
+            model.addAttribute("notfound", id);
+        }
+        model.addAttribute("ad", ad);
+        return "advertisement";
+    }
+
     @RequestMapping(value = "/newAdd")
     public String newAdvertisement(@RequestParam(required = false) String title,
             @RequestParam(required = false) String content,
@@ -72,7 +95,10 @@ public class AdvertisementController {
             @RequestParam(required = false) MultipartFile image,
             @RequestParam(required = false) MultipartFile video,
             Model model) {
-        if (title != null && content != null && petName != null && race != null && categoryName != null && voivodership != null && commune != null && place != null) {
+    
+    	Advertisement advertisement = null;
+        
+    	if (title != null && content != null && petName != null && race != null && categoryName != null && voivodership != null && commune != null && place != null) {
             if (!title.equals("") && !content.equals("") && !petName.equals("") && !race.equals("") && !categoryName.equals("") && !voivodership.equals("") && !commune.equals("") && !place.equals("")) {
 
                 List<Tag> tags = tagStringToList(tagsString);
@@ -80,18 +106,26 @@ public class AdvertisementController {
                 String videoName = uploadFile(video);
 
                 List<Attachment> attachments = setAttachment(imageName, videoName);
-                advertisementService.newAdvertisement(title, content, petName, age, race, categoryName, voivodership, commune, place, tags, attachments);
+                advertisement = advertisementService.newAdvertisement(title, content, petName, age, race, categoryName, voivodership, commune, place, tags, attachments);
                 model.addAttribute("statusOK", "Advertisement has been added successfully.");
             } else {
                 PetCategory category = new PetCategory(categoryName);
                 Pet pet = new Pet(petName, race, age, null, category);
                 Location location = new Location(voivodership, place, commune);
-                Advertisement advertisement = new Advertisement(title, content, null, pet, location, null, null);
+                advertisement = new Advertisement(title, content, null, pet, location, null, null);
                 model.addAttribute("advertisement", advertisement);
                 model.addAttribute("tags", tagsString);
                 model.addAttribute("statusEmpty", "Fields cannot remain empty.");
             }
         }
+        //new advertisment information
+        try {
+			advertisementService.sendEmailNotification(advertisement);
+		} catch (NoUsersToNotifyException e) {
+            LOGGER.log(Level.SEVERE, "NoUsersToNotifyException is returned");
+            model.addAttribute("status", e.getMessage());
+		}
+        
         model.addAttribute("categories", advertisementService.getAllCategories());
         return "addAdvertisement";
     }
@@ -252,16 +286,37 @@ public class AdvertisementController {
             @RequestParam(required = false) String tagInfo,
             @RequestParam(required = false) int page
     ) {
+    	SearchResults searchResults = advertisementService.getSearchedAdvertisements(
+    			page - 1, 20, 
+    			adInfo, petInfo, 
+    			locationInfo, 
+    			tagInfo
+    	);
         model.addAttribute("advertisements",
-                advertisementService.getSearchedAdvertisements(page - 1, 20, adInfo, petInfo, locationInfo, tagInfo)
+                searchResults.getAdvertisements()
         );
         this.preparePagination(model, page);
         model.addAttribute("adInfo", adInfo);
         model.addAttribute("petInfo", petInfo);
         model.addAttribute("locationInfo", locationInfo);
         model.addAttribute("tagInfo", tagInfo);
+        model.addAttribute("pages", (long) Math.ceil(searchResults.getAllResultsCount()/ 20)+1);
         return new ModelAndView("searchResults");
     }
+    
+    @RequestMapping(value = "/admin/deleteAdv/{advId}", method = RequestMethod.DELETE)
+	public String removeAdd(
+			Model model, 
+			@PathVariable int advId
+			
+	) {
+    	if(!this.userService.checkIfUserIsAdmin()) {
+    		throw new AdminAllowedException("You must be admin");
+    	}
+    	advertisementService.deleteAdvertisement(advId);
+    	
+    	return "deleteSuccess";
+	}
 
     private void preparePagination(Model model, int page) {
         long pages = advertisementService.getNumberOfPages(20);

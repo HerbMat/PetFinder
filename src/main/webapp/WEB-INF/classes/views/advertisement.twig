@@ -1,0 +1,124 @@
+{% extends 'template.twig' %}
+{% block title %}Advertisement{% endblock %}
+{% block onloadBlock %}onload="mapStart('{{ ad.getLocation.getVoivodership }}')"{% endblock %}
+{% block content %}
+    {% if notfound %}
+        <div class="row">
+            <div class="col s6 offset-s3" role="alert">
+                <div class="card red darken-1">
+                    <div class="card-content white-text">
+                        <p>Advertisement #{{ notfound }} has not been found.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+    <div class="row">
+        <div class="col s8 offset-s2">
+            <h3>
+                {{ ad.getTitle }}
+                {% if (beans.userService.getLoggedUserName == ad.getUser.getLogin and beans.userService.getLoggedUserName != null) %}
+                    <a href="/getEditAdd?id={{ad.id}}"
+                       class="btn-floating waves-effect waves-light red" >
+                        <i class="material-icons">edit</i>
+                    </a>
+                {% endif %}
+            </h3>
+            <div class="row">
+                {% if ad.getLocation %}
+                    <strong>Location: </strong>
+                    {% if ad.getLocation.getVoivodership %}
+                        {{ ad.getLocation.getVoivodership }},
+                    {% endif %}
+                    {% if ad.getLocation.getPlace %}
+                        {{ ad.getLocation.getPlace }}
+                    {% endif %}
+                    |
+                {% endif %}
+                <strong>Date:</strong> {{ ad.getCreatedDate | date('yyyy-MM-dd HH:mm') }}
+
+                {% if ad.getUser %}
+                    | <strong>Author:</strong>
+                    {{ ad.getUser.getName }}
+                {% endif %}
+            </div>
+
+            {% if ad.getTags %}
+                <div class="row">
+                    {% for tag in ad.getTags %}
+                        <div class="chip">{{ tag.getName }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+			<div class="row">
+				<div class="col s6">
+		            <div class="row">
+		                <div class="col s2">
+		                    <strong>Name</strong>
+		                </div>
+		                <div class="col s2">
+		                    {{ ad.getPet.getName }}
+		                </div>
+		            </div>
+		
+		            <div class="row">
+		                <div class="col s2">
+		                    <strong>Age</strong>
+		                </div>
+		                <div class="col s2">
+		                    {{ ad.getPet.getAge }}
+		                </div>
+		            </div>
+		            <div class="row">
+		                <div class="col s2">
+		                    <strong>Race</strong>
+		                </div>
+		                <div class="col s2">
+		                    {{ ad.getPet.getRace }}
+		                </div>
+		            </div>
+		        </div>
+                <div class="col s6">
+                    <div id="map" style="width: 20em; height: 18em; border: 1px solid black; background: gray;" />   
+                </div>
+            </div>
+            <div class="row">
+                {{ ad.getContent }}
+            </div>  
+
+            {% if ad.getAttachments %}
+                {% for attachment in ad.getAttachments %}
+                    {% if attachment.getTypeString == "IMAGE" %}
+                        <div class="row">
+                            <img src="{{ attachment.getUri | path }}">
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            {% if ad.getUser %}
+            <div class="row">
+                <a href="mailto:{{ ad.getUser.getEmail }}" class="col s3 waves-effect waves-light btn red">
+                    <i class="material-icons left">comment</i>Contact
+				</a>
+				{% if(beans.userService.checkIfUserIsAdmin == true) %}
+					<form action="{{ concat('/admin/deleteAdv/', ad.id) | path }}"  method="post" />
+				        <input type="hidden" name="_method" value="DELETE">
+				        <input type="hidden" name="{{ csrf.parameterName }}" value="{{ csrf.token }}" />
+			            <button class="col s3 waves-effect waves-light btn red" type="submit">
+			                {% block buttonFormLabel %} Delete {% endblock %}
+			            </button>
+				    </form>
+			    {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% endif %}
+
+{% endblock %}
+{% block additonalJavaScripts %}
+    <script src="http://maps.google.com/maps/api/js?sensor=false" type="text/javascript"></script>
+	<script type="text/javascript" src="/js/maps.js"></script>
+{% endblock %}

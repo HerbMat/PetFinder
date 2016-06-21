@@ -1,6 +1,5 @@
 package com.petfinder.domain;
 
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 import javax.persistence.*;
@@ -46,6 +45,10 @@ public class Attachment extends AbstractPersistable<Long>
 
     public Type getType() {
         return Type.valueOf(type);
+    }
+
+    public String getTypeString() {
+        return type;
     }
 
     public void setType(Type type) {

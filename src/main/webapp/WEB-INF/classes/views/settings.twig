@@ -1,0 +1,47 @@
+{% extends 'template.twig' %}
+{% block title %}User settings{% endblock %}
+{% block content %}
+
+    <h3 class="grey-text text-darken-1">Settings</h3>
+
+    {% if status %}
+        <div class="row">
+            <div class="col s6 offset-s3" role="alert">
+                <div class="card red darken-1">
+                    <div class="card-content white-text">
+                        <p>{{ status }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <form action="/settings" method="POST"
+          enctype="multipart/form-data">
+    <div class="row">
+        <div class="col s12">
+							<label>Email notifications</label>
+            <div class="input-field">				
+				  <div class="switch">
+					<label>
+						Off
+						<input type="checkbox" id="emailNotification" name="emailNotification" {{ isChecked }}>
+						<span class="lever"></span>
+						On
+					</label>
+				</div>
+            </div>
+		</div>
+	</div>
+    <input type="hidden" name="{{ csrf.parameterName }}" value="{{ csrf.token }}" />
+
+    <div class="row input-field">
+    </div>
+        <div class="form-actions clearfix">
+        <button type="submit" class="btn waves-effect waves-light">
+            Save
+        </button>
+    </div>
+    </form>
+
+{% endblock %}

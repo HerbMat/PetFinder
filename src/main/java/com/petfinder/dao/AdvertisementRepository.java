@@ -38,12 +38,20 @@ public interface AdvertisementRepository
     Page<Advertisement> findByPet(Pet pet, Pageable pageable);
     
     @Transactional
-    Page<Advertisement> findByPetInAndTitleContainingAndLocationInAndTagsIn(
+    Page<Advertisement> findDistinctByPetInAndTitleContainingAndLocationInAndTagsIn(
     	Collection<Pet> pets, 
     	String title,
     	Collection<Location> locations,
     	Collection<Tag> tags,
     	Pageable pageable
+    );
+    
+    @Transactional
+    List<Advertisement> findDistinctByPetInAndTitleContainingAndLocationInAndTagsIn(
+    	Collection<Pet> pets, 
+    	String title,
+    	Collection<Location> locations,
+    	Collection<Tag> tags
     );
     
     @Transactional

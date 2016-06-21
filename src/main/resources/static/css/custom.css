@@ -8,6 +8,10 @@ main {
     flex: 1 0 auto;
 }
 
+#map {
+   margin-bottom: 3em;
+ }
+
 @font-face {
     font-family: 'Material Icons';
     font-style: normal;

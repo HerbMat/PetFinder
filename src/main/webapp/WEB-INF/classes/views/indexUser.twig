@@ -1,0 +1,29 @@
+{% extends 'template.twig' %}
+{% block title %}Admin panel{% endblock %}
+{% block content %}
+	<h3 class="grey-text text-darken-1">User List</h3>
+    <ul class="collection left-align">
+        {% for user in users %}
+        <li class="collection-item avatar">
+            <img src="/img/avatar.png" alt="" class="circle" />
+            <span class="title">{{ user.login }}</span>
+            <p>
+                Joined: {{ user.registrationDate|date('Y-m-d') }}<br>
+                {% if user.isBanned == true %} Blocked
+                {% else %}
+	                <form action="{{ concat('/admin/user/block/', user.id) | path }}"  method="post" />
+	                    <button class="waves-effect waves-light btn green" id="Delete-{{ user.id }}" type="submit">
+	                        Block
+	                    </button>
+	                    <input type="hidden" name="{{ csrf.parameterName }}" value="{{ csrf.token }}" />
+	                    <input type="hidden" name="_method" value="PUT">
+	                    <br>
+	                </form>
+                {% endif %}
+            </p>
+            <a href="#" class="secondary-content" id="show"><i class="material-icons">send</i></a>
+        </li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}
