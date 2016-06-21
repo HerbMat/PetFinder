@@ -1,6 +1,5 @@
 package com.petfinder.controller;
 
-import com.petfinder.dao.AdvertisementRepository;
 import com.petfinder.domain.Advertisement;
 import com.petfinder.domain.Attachment;
 import com.petfinder.domain.Tag;
@@ -39,6 +38,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.aspectj.weaver.patterns.ThisOrTargetAnnotationPointcut;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
+import com.petfinder.dao.ReportRepository;
 
 @Controller
 public class AdvertisementController {
@@ -48,7 +48,7 @@ public class AdvertisementController {
 
     @Autowired
     AdvertisementService advertisementService;
-    
+
     @Autowired
     UserService userService;
 
@@ -67,6 +67,24 @@ public class AdvertisementController {
         model.addAttribute("advertisements",
                 advertisementService.getLatestAdvertisements(page - 1)
         );
+        return "adlist";
+    }
+
+    //kod informacji o powodzeniu
+    @RequestMapping(value = {"/latestCode/{code}"})
+    public String latestAdvertisementsWithCode(@PathVariable int code, Model model) {
+        this.preparePagination(model, INITIAL_PAGE + 1);
+        model.addAttribute("advertisements",
+                advertisementService.getLatestAdvertisements(INITIAL_PAGE)
+        );
+        switch (code) {
+            case 1:
+                model.addAttribute("statusOK", "Advertisement has been deleted successfully.");
+                break;
+            case 2:
+                model.addAttribute("statusOK", "Raport has been sent successfully.");
+                break;
+        }
         return "adlist";
     }
 
@@ -95,10 +113,10 @@ public class AdvertisementController {
             @RequestParam(required = false) MultipartFile image,
             @RequestParam(required = false) MultipartFile video,
             Model model) {
-    
-    	Advertisement advertisement = null;
-        
-    	if (title != null && content != null && petName != null && race != null && categoryName != null && voivodership != null && commune != null && place != null) {
+
+        Advertisement advertisement = null;
+
+        if (title != null && content != null && petName != null && race != null && categoryName != null && voivodership != null && commune != null && place != null) {
             if (!title.equals("") && !content.equals("") && !petName.equals("") && !race.equals("") && !categoryName.equals("") && !voivodership.equals("") && !commune.equals("") && !place.equals("")) {
 
                 List<Tag> tags = tagStringToList(tagsString);
@@ -120,12 +138,12 @@ public class AdvertisementController {
         }
         //new advertisment information
         try {
-			advertisementService.sendEmailNotification(advertisement);
-		} catch (NoUsersToNotifyException e) {
+            advertisementService.sendEmailNotification(advertisement);
+        } catch (NoUsersToNotifyException e) {
             LOGGER.log(Level.SEVERE, "NoUsersToNotifyException is returned");
             model.addAttribute("status", e.getMessage());
-		}
-        
+        }
+
         model.addAttribute("categories", advertisementService.getAllCategories());
         return "addAdvertisement";
     }
@@ -286,12 +304,12 @@ public class AdvertisementController {
             @RequestParam(required = false) String tagInfo,
             @RequestParam(required = false) int page
     ) {
-    	SearchResults searchResults = advertisementService.getSearchedAdvertisements(
-    			page - 1, 20, 
-    			adInfo, petInfo, 
-    			locationInfo, 
-    			tagInfo
-    	);
+        SearchResults searchResults = advertisementService.getSearchedAdvertisements(
+                page - 1, 20,
+                adInfo, petInfo,
+                locationInfo,
+                tagInfo
+        );
         model.addAttribute("advertisements",
                 searchResults.getAdvertisements()
         );
@@ -300,23 +318,27 @@ public class AdvertisementController {
         model.addAttribute("petInfo", petInfo);
         model.addAttribute("locationInfo", locationInfo);
         model.addAttribute("tagInfo", tagInfo);
-        model.addAttribute("pages", (long) Math.ceil(searchResults.getAllResultsCount()/ 20)+1);
+        model.addAttribute("pages", (long) Math.ceil(searchResults.getAllResultsCount() / 20) + 1);
         return new ModelAndView("searchResults");
     }
-    
+
     @RequestMapping(value = "/admin/deleteAdv/{advId}", method = RequestMethod.DELETE)
-	public String removeAdd(
-			Model model, 
-			@PathVariable int advId
-			
-	) {
-    	if(!this.userService.checkIfUserIsAdmin()) {
-    		throw new AdminAllowedException("You must be admin");
-    	}
-    	advertisementService.deleteAdvertisement(advId);
-    	
-    	return "deleteSuccess";
-	}
+    public String removeAdd(
+            Model model,
+            @PathVariable Long advId
+    ) {
+        if (!this.userService.checkIfUserIsAdmin()) {
+            throw new AdminAllowedException("You must be admin");
+        }
+        
+         try {
+           advertisementService.deleteAdvertisement(advId);
+        } catch (UserDoesNotHavePermissionToAdvertisemntException e) {
+            LOGGER.log(Level.SEVERE, "UserDoesNotHavePermissionToAdvertisemntException is returned");
+        }
+
+        return "deleteSuccess";
+    }
 
     private void preparePagination(Model model, int page) {
         long pages = advertisementService.getNumberOfPages(20);
@@ -340,5 +362,17 @@ public class AdvertisementController {
         model.addAttribute("firstpage", firstpage);
         model.addAttribute("lastpage", lastpage);
         model.addAttribute("printPages", printPages);
+    }
+
+    @RequestMapping(value = "/deleteAdd")
+    public String deleteAdvertisement(@RequestParam(required = false) Long id, Model model) {
+        try {
+            advertisementService.deleteAdvertisement(id);
+        } catch (UserDoesNotHavePermissionToAdvertisemntException e) {
+            LOGGER.log(Level.SEVERE, "UserDoesNotHavePermissionToAdvertisemntException is returned");
+            model.addAttribute("status", e.getMessage());
+        }
+        //return latestAdvertisements(model);
+        return "redirect:/latestCode/1";
     }
 }

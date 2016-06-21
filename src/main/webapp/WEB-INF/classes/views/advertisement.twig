@@ -17,12 +17,22 @@
         <div class="col s8 offset-s2">
             <h3>
                 {{ ad.getTitle }}
-                {% if (beans.userService.getLoggedUserName == ad.getUser.getLogin and beans.userService.getLoggedUserName != null) %}
-                    <a href="/getEditAdd?id={{ad.id}}"
-                       class="btn-floating waves-effect waves-light red" >
-                        <i class="material-icons">edit</i>
-                    </a>
-                {% endif %}
+                        {% if ( beans.userService.getLoggedUserName != null) %}
+                            {% if (beans.userService.getLoggedUserName == ad.getUser.getLogin ) %}
+                                <a href="/getEditAdd?id={{ad.id}}"
+                                   class="btn-floating waves-effect waves-light red" >
+                                        <i class="material-icons">edit</i>
+                                </a>
+                                <a href="/deleteAdd?id={{ad.id}}"
+                                   class="btn-floating waves-effect waves-light red" >
+                                    <i class="material-icons">delete</i>
+                                </a>
+                            {% endif %}
+                            <a href="/addReport?idAdd={{ad.id}}"
+                               class="btn-floating waves-effect waves-light red" >
+                                    <i class="material-icons">error</i>
+                            </a>
+                        {% endif %}
             </h3>
             <div class="row">
                 {% if ad.getLocation %}
